@@ -27,8 +27,7 @@
 <body>
   <h1>二択クイズ（誤用されやすい言葉）</h1>
   <div id="stats"></div>
-  <div id="qno"></div>
-  <div id="questionTitle">下線部の意味として正しいのはどっち？</div>
+<div id="questionTitle">下線部の意味として正しいのはどっち？</div>
   <div id="app"></div>
   <div id="nav">
     <button id="prevBtn">前の問題へ</button>
@@ -698,14 +697,9 @@
 
     function renderQuestion() {
       const app = document.getElementById("app");
-      const qnoEl = document.getElementById("qno");
-
-      const idx = order[pos];
+const idx = order[pos];
       const item = originalData[idx];
-
-      qnoEl.textContent = `第 ${item.no} 問 / 全 ${originalData.length} 問`;
-
-      app.innerHTML = "";
+app.innerHTML = "";
       const card = document.createElement("div");
       card.className = "card";
 
