@@ -563,14 +563,14 @@
         h.textContent = (idx+1) + ". " + item.q;
         card.appendChild(h);
 
+        const result = document.createElement("div");
+        result.className = "result";
+        card.appendChild(result);
+
         const tip = document.createElement("div");
         tip.className = "tip";
         tip.textContent = item.tip || "";
         card.appendChild(tip);
-
-        const result = document.createElement("div");
-        result.className = "result";
-        card.appendChild(result);
 
         function makeButton(text, n) {
           const b = document.createElement("button");
