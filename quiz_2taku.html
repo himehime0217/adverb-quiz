@@ -569,7 +569,19 @@
 
         const tip = document.createElement("div");
         tip.className = "tip";
-        tip.textContent = (item.tip || "") + ((item.tip && !item.tip.endsWith("だよ。")) ? " だよ。" : "");
+        // 文末トーン自動調整：
+            // ・形容詞・傾向表現 →「よ。」
+            // ・それ以外 →「だよ。」
+            const base = (item.tip || "");
+            if (!base) { tip.textContent = ""; }
+            else if (base.endsWith("だよ。")) { tip.textContent = base; }
+            else {
+              // 単純ヒューリスティック
+              const plain = base.replace(/。+$/,'');
+              const last = plain.slice(-1);
+              const yoEnd = /[いえやよん]$/.test(last) || /(やすい|しやすい|しにくい|気味|傾向)$/.test(plain);
+              tip.textContent = base + (yoEnd ? " よ。" : " だよ。");
+            }
         card.appendChild(tip);
 
         function makeButton(text, n) {
