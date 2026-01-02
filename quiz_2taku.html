@@ -1,65 +1,103 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>二択クイズ（試作）</title>
-<style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.6; padding: 1.2rem; }
-.card { border: 1px solid #ccc; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
-.btn { display: block; width: 100%; margin: .4rem 0; padding: .6rem; border-radius: 8px; border: 1px solid #555; background:#f5f5f5; }
-.btn.correct { background:#e6ffe6; border-color:#2a8a2a; }
-.btn.wrong { background:#ffecec; border-color:#cc3a3a; }
-.explain { margin-top:.6rem; color:#444; display:none; }
-footer { margin-top:1rem; font-size:.85rem; color:#666; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>二択クイズ（テスト）</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      padding: 1.2rem;
+    }
+    .card {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      margin: .4rem 0;
+      padding: .6rem;
+      border-radius: 8px;
+      border: 1px solid #555;
+      background: #f5f5f5;
+      cursor: pointer;
+    }
+    .btn.correct {
+      background: #e6ffe6;
+      border-color: #2a8a2a;
+    }
+    .btn.wrong {
+      background: #ffecec;
+      border-color: #cc3a3a;
+    }
+    .explain {
+      margin-top: .6rem;
+      color: #444;
+      display: none;
+    }
+  </style>
 </head>
 <body>
-<h1>二択クイズ（試作版）</h1>
-<div id="app"></div>
-<footer>Excel: 二択問題.xlsx から生成</footer>
-<script>
-const data = [];
+  <h1>二択クイズ（テスト版）</h1>
+  <div id="app"></div>
 
-function render() {
-  const app = document.getElementById("app");
-  app.innerHTML = "";
-  data.forEach((item, idx) => {
-    const card = document.createElement("div");
-    card.className = "card";
+  <script>
+    // テスト用に1問だけ
+    const data = [
+      {
+        q: "「役不足」の本来の意味として正しいのはどちら？",
+        a1: "その人の能力に対して、役目が軽すぎる",
+        a2: "その人の能力が足りず、役目が重すぎる",
+        correct: 1,
+        exp: "「役不足」は『能力に比べて役目が軽すぎる』という意味です。"
+      }
+    ];
 
-    const h = document.createElement("h3");
-    h.textContent = (idx+1) + ". " + item.q;
-    card.appendChild(h);
+    function render() {
+      const app = document.getElementById("app");
+      app.innerHTML = "";
 
-    const mkBtn = (text, n) => {
-      const b = document.createElement("button");
-      b.className = "btn";
-      b.textContent = text;
-      b.onclick = () => {
-        if (b.dataset.done) return;
-        b.dataset.done = "1";
-        const correct = (n === item.correct);
-        b.classList.add(correct ? "correct" : "wrong");
-        exp.style.display = "block";
-      };
-      return b;
-    };
+      data.forEach((item, idx) => {
+        const card = document.createElement("div");
+        card.className = "card";
 
-    const btn1 = mkBtn("① " + item.a1, 1);
-    const btn2 = mkBtn("② " + item.a2, 2);
-    card.appendChild(btn1);
-    card.appendChild(btn2);
+        const h = document.createElement("h3");
+        h.textContent = (idx + 1) + ". " + item.q;
+        card.appendChild(h);
 
-    const exp = document.createElement("div");
-    exp.className = "explain";
-    exp.textContent = item.exp || "";
-    card.appendChild(exp);
+        const exp = document.createElement("div");
+        exp.className = "explain";
+        exp.textContent = item.exp || "";
+        card.appendChild(exp);
 
-    app.appendChild(card);
-  });
-}
-render();
-</script>
+        function makeButton(text, n) {
+          const b = document.createElement("button");
+          b.className = "btn";
+          b.textContent = text;
+          b.addEventListener("click", function () {
+            if (b.dataset.done === "1") return;
+            b.dataset.done = "1";
+            const isCorrect = (n === item.correct);
+            b.classList.add(isCorrect ? "correct" : "wrong");
+            exp.style.display = "block";
+          });
+          return b;
+        }
+
+        const btn1 = makeButton("① " + item.a1, 1);
+        const btn2 = makeButton("② " + item.a2, 2);
+
+        card.appendChild(btn1);
+        card.appendChild(btn2);
+        app.appendChild(card);
+      });
+    }
+
+    render();
+  </script>
 </body>
 </html>
