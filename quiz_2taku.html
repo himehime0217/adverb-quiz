@@ -13,6 +13,8 @@
     .btn { display:block; width:100%; margin:.4rem 0; padding:.6rem; border-radius:8px; border:1px solid #555; background:#f5f5f5; cursor:pointer; }
     .btn.correct { background:#e6ffe6; border-color:#2a8a2a; }
     .btn.wrong { background:#ffecec; border-color:#c0392b; }
+    .btn.chosen-ok { background:#ccffcc; border-color:#2a8a2a; }
+    .btn.chosen-ng { background:#ffdddd; border-color:#c0392b; }
     .example-label { font-size:.9rem; color:#555; }
     .example { margin-top:.2rem; color:#222; font-size:1.05rem; font-weight:600; }
     .tip { margin-top:.6rem; color:#444; display:none; font-weight:600; }
@@ -722,10 +724,17 @@ app.innerHTML = "";
       tip.textContent = item.tip || "";
       card.appendChild(tip);
 
-      function handleAnswer(isCorrect) {
+      function handleAnswer(isCorrect, btn) {
         if (card.dataset.done === "1") return;
         card.dataset.done = "1";
         const ok = !!isCorrect;
+        if (btn) {
+          if (ok) {
+            btn.classList.add("chosen-ok");
+          } else {
+            btn.classList.add("chosen-ng");
+          }
+        }
 
         if (ok) {
           result.textContent = "正解！";
@@ -764,14 +773,14 @@ app.innerHTML = "";
       const correctFirst = Math.random() < 0.5;
       if (correctFirst) {
         btn1.textContent = "① " + item.a1; // 正しい意味
-        btn1.onclick = () => handleAnswer(true);
+        btn1.onclick = () => handleAnswer(true, btn1);
         btn2.textContent = "② " + item.a2;
-        btn2.onclick = () => handleAnswer(false);
+        btn2.onclick = () => handleAnswer(false, btn2);
       } else {
         btn1.textContent = "① " + item.a2;
-        btn1.onclick = () => handleAnswer(false);
+        btn1.onclick = () => handleAnswer(false, btn1);
         btn2.textContent = "② " + item.a1; // 正しい意味
-        btn2.onclick = () => handleAnswer(true);
+        btn2.onclick = () => handleAnswer(true, btn2);
       }
 
       card.appendChild(btn1);
