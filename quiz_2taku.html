@@ -13,7 +13,7 @@
     .btn.correct { background:#e6ffe6; border-color:#2a8a2a; }
     .btn.wrong { background:#ffecec; border-color:#c0392b; }
     .example-label { font-size:.9rem; color:#555; }
-    .example { margin-top:.2rem; color:#222; font-size:.95rem; }
+    .example { margin-top:.2rem; color:#222; font-size:1.05rem; font-weight:600; }
     .tip { margin-top:.6rem; color:#444; display:none; font-weight:600; }
     .result { margin-top:.4rem; font-weight:bold; }
     .result.ok { color:#1a7f1a; }
@@ -25,10 +25,8 @@
 </head>
 <body>
   <h1>二択クイズ（誤用されやすい言葉）</h1>
-  <p>【遊び方】<br>
-  例文の<u>下線部</u>を読んで、「意味として正しいのはどっち？」に答えよう。<br>
-  答えるたびに正答率が更新されるよ。</p>
-  <div id="stats">まだ解いていません。</div>
+  <div id="questionTitle">下線部の意味として正しいのはどっち？</div>
+<div id="stats">まだ解いていません。</div>
   <div id="qno"></div>
   <div id="app"></div>
   <div id="nav">
@@ -697,11 +695,7 @@
       example.innerHTML = item.ex_html || "";
       card.appendChild(example);
 
-      const h = document.createElement("h3");
-      h.textContent = item.q;
-      card.appendChild(h);
-
-      const result = document.createElement("div");
+const result = document.createElement("div");
       result.className = "result";
       card.appendChild(result);
 
@@ -710,10 +704,10 @@
       tip.textContent = item.tip || "";
       card.appendChild(tip);
 
-      function handleAnswer(choice) {
+      function handleAnswer(isCorrect) {
         if (card.dataset.done === "1") return;
         card.dataset.done = "1";
-        const ok = (choice === item.correct);
+        const ok = !!isCorrect;
 
         if (ok) {
           result.textContent = "正解！";
@@ -744,15 +738,22 @@
 
       const btn1 = document.createElement("button");
       btn1.className = "btn";
-      btn1.textContent = "① " + item.a1;
-      btn1.onclick = () => handleAnswer(1);
-
       const btn2 = document.createElement("button");
       btn2.className = "btn";
-      btn2.textContent = "② " + item.a2;
-      btn2.onclick = () => handleAnswer(2);
-
-      card.appendChild(btn1);
+      // ①正解・②不正解が固定にならないように、その都度シャッフル
+      const correctFirst = Math.random() < 0.5;
+      if (correctFirst) {
+        btn1.textContent = "① " + item.a1; // 正しい意味
+        btn1.onclick = () => handleAnswer(true);
+        btn2.textContent = "② " + item.a2;
+        btn2.onclick = () => handleAnswer(false);
+      } else {
+        btn1.textContent = "① " + item.a2;
+        btn1.onclick = () => handleAnswer(false);
+        btn2.textContent = "② " + item.a1; // 正しい意味
+        btn2.onclick = () => handleAnswer(true);
+      }
+card.appendChild(btn1);
       card.appendChild(btn2);
       app.appendChild(card);
 
