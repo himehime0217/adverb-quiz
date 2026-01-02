@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>二択クイズ（誤用語・例文先出し＋正答率）</title>
+  <title>二択クイズ（誤用されやすい言葉・1問ずつ）</title>
   <style>
     body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; line-height:1.6; padding:1.2rem; }
+    #stats { margin-bottom:1rem; font-weight:bold; }
+    #qno { margin-bottom:.5rem; font-weight:bold; }
     .card { border:1px solid #ccc; border-radius:10px; padding:1rem; margin-bottom:1rem; }
     .btn { display:block; width:100%; margin:.4rem 0; padding:.6rem; border-radius:8px; border:1px solid #555; background:#f5f5f5; cursor:pointer; }
     .btn.correct { background:#e6ffe6; border-color:#2a8a2a; }
@@ -16,616 +18,764 @@
     .result { margin-top:.4rem; font-weight:bold; }
     .result.ok { color:#1a7f1a; }
     .result.ng { color:#c0392b; }
-    #stats { margin-bottom:1rem; font-weight:bold; }
+    #nav { margin-top:.8rem; display:flex; gap:.5rem; }
+    #nav button { flex:1; padding:.5rem; border-radius:8px; border:1px solid #555; background:#f0f0f0; cursor:pointer; }
+    #nav button:disabled { opacity:0.5; cursor:default; }
   </style>
 </head>
 <body>
   <h1>二択クイズ（誤用されやすい言葉）</h1>
   <p>【遊び方】<br>
-  1. まず例文の<u>下線部</u>を読む。<br>
-  2. 「意味として正しいのはどっち？」に対して ① / ② を選ぶ。<br>
-  正解でも不正解でも「入試ポイント」が出るので、意味をしっかり確認しよう。</p>
+  例文の<u>下線部</u>を読んで、「意味として正しいのはどっち？」に答えよう。<br>
+  答えるたびに正答率が更新されるよ。</p>
   <div id="stats">まだ解いていません。</div>
+  <div id="qno"></div>
   <div id="app"></div>
+  <div id="nav">
+    <button id="prevBtn">前の問題へ</button>
+    <button id="nextBtn">次の問題へ</button>
+  </div>
 
   <script>
     const data = [
   {
+    "no": 1,
+    "word": "役不足",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "能力に対して役目が軽すぎる",
     "a2": "能力が足りない",
     "correct": 1,
     "ex_html": "彼にとってこの仕事は<u>役不足</u>で、もっと難しい役目でもこなせる。",
-    "tip": "入試ポイント：直感と逆の意味。頻出のひっかけ"
+    "tip": "直感と逆の意味。頻出のひっかけ だよ。"
   },
   {
+    "no": 2,
+    "word": "煮詰まる",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "議論が進み結論に近づく段階",
     "a2": "行き詰まる・進まない",
     "correct": 1,
     "ex_html": "議論が煮詰まり、いよいよ結論を出す段階になった。",
-    "tip": "入試ポイント：料理が由来＝完成に近い"
+    "tip": "料理が由来＝完成に近い よ。"
   },
   {
+    "no": 3,
+    "word": "気が置けない",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "遠慮せずに打ち解けて付き合える",
     "a2": "油断できない・気を抜けない",
     "correct": 1,
     "ex_html": "彼とは昔からの友人で、<u>気が置けない</u>仲だ。",
-    "tip": "入試ポイント：友人関係の文脈で出題されやすい"
+    "tip": "友人関係の文脈で出題されやすい よ。"
   },
   {
+    "no": 4,
+    "word": "憮然とする",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "失望してぼんやりしている様子",
     "a2": "怒って不機嫌",
     "correct": 1,
     "ex_html": "期待していた結果が出ず、彼は憮然として席に戻った。",
-    "tip": "入試ポイント：「ムッとしている」ではない"
+    "tip": "「ムッとしている」ではない よ。"
   },
   {
+    "no": 5,
+    "word": "失笑する",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "こらえきれず吹き出して笑う",
     "a2": "あきれて笑えない・苦笑する",
     "correct": 1,
     "ex_html": "あまりに奇妙な発言に、思わず失笑してしまった。",
-    "tip": "入試ポイント：“笑ってしまう”が正解"
+    "tip": "“笑ってしまう”が正解 だよ。"
   },
   {
+    "no": 6,
+    "word": "流れに棹さす",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "流れに乗り勢いを強める",
     "a2": "流れを妨げる・逆らう",
     "correct": 1,
     "ex_html": "新商品の成功により、会社の成長に<u>流れに棹さす</u>勢いがついた。",
-    "tip": "入試ポイント：意味が真逆になりやすい"
+    "tip": "意味が真逆になりやすい よ。"
   },
   {
+    "no": 7,
+    "word": "破天荒",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "今まで誰も成し得なかったことを初めて行う",
     "a2": "大胆・型破り・無茶苦茶",
     "correct": 1,
     "ex_html": "彼の発明は業界で初めての<u>破天荒</u>な成果となった。",
-    "tip": "入試ポイント：「初めて成し遂げる」がポイント"
+    "tip": "「初めて成し遂げる」がポイント だよ。"
   },
   {
+    "no": 8,
+    "word": "やぶさかでない",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "進んでやる気がある・喜んで行う",
     "a2": "気が進まない・消極的",
     "correct": 1,
     "ex_html": "必要とあらば、協力を惜しまぬことは<u>やぶさかでない</u>。",
-    "tip": "入試ポイント：二重否定＝肯定に注意"
+    "tip": "二重否定＝肯定に注意 だよ。"
   },
   {
+    "no": 9,
+    "word": "他力本願",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "仏の力に救済を求める（仏教語）",
     "a2": "人任せで怠ける",
     "correct": 1,
     "ex_html": "<u>他力本願</u>の教えに従い、仏の力に身を委ねる。",
-    "tip": "入試ポイント：宗教語本来の意味を区別"
+    "tip": "宗教語本来の意味を区別 だよ。"
   },
   {
+    "no": 10,
+    "word": "気の置けない",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "打ち解けて安心して付き合える関係",
     "a2": "用心が必要・気をつかう関係",
     "correct": 1,
     "ex_html": "家族のように<u>気の置けない</u>仲間たちと過ごす。",
-    "tip": "入試ポイント：「気が置けない＝親しい」が正解"
+    "tip": "「気が置けない＝親しい」が正解 だよ。"
   },
   {
+    "no": 11,
+    "word": "まんじりともせず",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "少しも眠れない",
     "a2": "ぐっすり眠る",
     "correct": 1,
     "ex_html": "試合のことが気になって、昨夜は<u>まんじりともせず</u>過ごした。",
-    "tip": "入試ポイント：否定表現に注目"
+    "tip": "否定表現に注目 だよ。"
   },
   {
+    "no": 12,
+    "word": "独壇場（独擅場）",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "その人だけが力を発揮できる場面",
     "a2": "ひとりよがりで勝手にやること",
     "correct": 1,
     "ex_html": "今回の発表会は、彼の独壇場となった。",
-    "tip": "入試ポイント：表記と意味の両方を問われる"
+    "tip": "表記と意味の両方を問われる だよ。"
   },
   {
+    "no": 13,
+    "word": "未曾有（みぞう）",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "いまだかつて例がない",
     "a2": "めったにない程度",
     "correct": 1,
     "ex_html": "未曾有の大雨により、町は大きな被害を受けた。",
-    "tip": "入試ポイント：意味の“強さ”を把握"
+    "tip": "意味の“強さ”を把握 だよ。"
   },
   {
+    "no": 14,
+    "word": "世間ずれ",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "世間に慣れてずる賢くなる",
     "a2": "社会経験が豊富で洗練されている",
     "correct": 1,
     "ex_html": "<u>世間ずれ</u>した態度が、周囲の反感を買ってしまった。",
-    "tip": "入試ポイント：ポジティブ語ではない"
+    "tip": "ポジティブ語ではない よ。"
   },
   {
+    "no": 15,
+    "word": "情けは人のためならず",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "人に親切にすると、やがて自分に良い形で返ってくる",
     "a2": "親切にするとその人のためにならない",
     "correct": 1,
     "ex_html": "<u>情けは人のためならず</u>——困っている人を助けたことが、後に自分の助けとなった。",
-    "tip": "入試ポイント：ことわざの否定表現の読み違いに注意"
+    "tip": "ことわざの否定表現の読み違いに注意 だよ。"
   },
   {
+    "no": 16,
+    "word": "姑息",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "その場しのぎで根本的でないさま",
     "a2": "卑怯・ずるい",
     "correct": 1,
     "ex_html": "<u>姑息</u>な対策では問題の解決には至らない。",
-    "tip": "入試ポイント：語感に引きずられない"
+    "tip": "語感に引きずられない よ。"
   },
   {
+    "no": 17,
+    "word": "琴線に触れる",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "心の奥深くの感情に訴えかける",
     "a2": "怒りや神経を逆なでする",
     "correct": 1,
     "ex_html": "その言葉は私の琴線に触れ、静かな感動を呼んだ。",
-    "tip": "入試ポイント：ポジティブな感情語である点が重要"
+    "tip": "ポジティブな感情語である点が重要 だよ。"
   },
   {
+    "no": 18,
+    "word": "逡巡",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "ためらい迷って決断できないこと",
     "a2": "慎重に検討する（肯定的）",
     "correct": 1,
     "ex_html": "彼は返答を前に<u>逡巡</u>して口をつぐんだ。",
-    "tip": "入試ポイント：否定的なためらいの語"
+    "tip": "否定的なためらいの語 だよ。"
   },
   {
+    "no": 19,
+    "word": "杞憂",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "根拠のない取り越し苦労",
     "a2": "心配事全般",
     "correct": 1,
     "ex_html": "彼の不安は<u>杞憂</u>に終わった。",
-    "tip": "入試ポイント：“根拠がない”が鍵"
+    "tip": "“根拠がない”が鍵 だよ。"
   },
   {
+    "no": 20,
+    "word": "机上の空論",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "理屈だけで実際には役立たない考え",
     "a2": "高度で難しい理論",
     "correct": 1,
     "ex_html": "計画が<u>机上の空論</u>に終わらないよう検証する。",
-    "tip": "入試ポイント：実践性の欠如を批判する語"
+    "tip": "実践性の欠如を批判する語 だよ。"
   },
   {
+    "no": 21,
+    "word": "青天の霹靂",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "思いがけず突然起こる出来事",
     "a2": "とても良い知らせ",
     "correct": 1,
     "ex_html": "その知らせは<u>青天の霹靂</u>のように感じられた。",
-    "tip": "入試ポイント：良悪どちらにも使える点に注意"
+    "tip": "良悪どちらにも使える点に注意 だよ。"
   },
   {
+    "no": 22,
+    "word": "敷居が高い",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "不義理や後ろめたさがあって、その家・場所に行きにくい",
     "a2": "高級・格式が高くて入りにくい",
     "correct": 1,
     "ex_html": "長く連絡を絶っていたので、先輩の家は敷居が高く感じられた。",
-    "tip": "入試ポイント：心理的負い目に由来する表現"
+    "tip": "心理的負い目に由来する表現 だよ。"
   },
   {
+    "no": 23,
+    "word": "檄を飛ばす",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "呼びかけて人々を奮い立たせる",
     "a2": "激しく叱りつける",
     "correct": 1,
     "ex_html": "監督は選手たちに檄を飛ばし、士気を高めた。",
-    "tip": "入試ポイント：語源は『檄文（呼びかけの文）』"
+    "tip": "語源は『檄文（呼びかけの文）』 だよ。"
   },
   {
+    "no": 24,
+    "word": "割愛する",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "惜しいと思いながら省く・省略する",
     "a2": "愛着がないから除く",
     "correct": 1,
     "ex_html": "時間の関係で、いくつかの資料は割愛します。",
-    "tip": "入試ポイント：“惜しさ”を含む点が重要"
+    "tip": "“惜しさ”を含む点が重要 だよ。"
   },
   {
+    "no": 25,
+    "word": "確信犯",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "道徳的・宗教的信念から、正しいと信じて行う犯罪や行為",
     "a2": "悪いと知りつつ意図的に行う犯罪",
     "correct": 1,
     "ex_html": "彼の行動は<u>確信犯</u>的で、本人は正しいと信じていた。",
-    "tip": "入試ポイント：現代語との意味差に注意"
+    "tip": "現代語との意味差に注意 だよ。"
   },
   {
+    "no": 26,
+    "word": "さわり",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "話や作品の最も大事な部分・要点",
     "a2": "冒頭・導入部分",
     "correct": 1,
     "ex_html": "話の<u>さわり</u>だけを先に説明しておく。",
-    "tip": "入試ポイント：“見どころ”という肯定的意味"
+    "tip": "“見どころ”という肯定的意味 だよ。"
   },
   {
+    "no": 27,
+    "word": "潮時",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "物事をやめたり区切りをつけたりするのにちょうどよい時機",
     "a2": "盛り上がりの絶好機",
     "correct": 1,
     "ex_html": "これを機に退職するのが<u>潮時</u>だと感じた。",
-    "tip": "入試ポイント：“引き際の好機”という方向性"
+    "tip": "“引き際の好機”という方向性 だよ。"
   },
   {
+    "no": 28,
+    "word": "お腹の虫がおさまらない",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "怒りや不満の気持ちが収まらない",
     "a2": "空腹がおさまらない",
     "correct": 1,
     "ex_html": "理不尽な扱いに、お腹の虫がおさまらなかった。",
-    "tip": "入試ポイント：比喩表現としての“虫”"
+    "tip": "比喩表現としての“虫” だよ。"
   },
   {
+    "no": 29,
+    "word": "二つ返事で引き受ける",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "ためらわず快く引き受ける",
     "a2": "条件を二つ提示して承諾する",
     "correct": 1,
     "ex_html": "彼はその依頼を二つ返事で引き受けた。",
-    "tip": "入試ポイント：“即答・快諾”を表す慣用句"
+    "tip": "“即答・快諾”を表す慣用句 だよ。"
   },
   {
+    "no": 30,
+    "word": "琴線に触れる",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "心の奥の感情に深く訴えかける",
     "a2": "神経を逆なでする・怒らせる",
     "correct": 1,
     "ex_html": "その演説は多くの人の琴線に触れた。",
-    "tip": "入試ポイント：ポジティブな共感表現"
+    "tip": "ポジティブな共感表現 だよ。"
   },
   {
+    "no": 31,
+    "word": "確信犯",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "信念に基づき“正しい”と信じて行う行為",
     "a2": "悪いと知りつつ行う犯罪",
     "correct": 1,
     "ex_html": "彼は<u>確信犯</u>的にその行動を選んだ。",
-    "tip": "入試ポイント：社会科・国語で意味の違いを問われやすい"
+    "tip": "社会科・国語で意味の違いを問われやすい よ。"
   },
   {
+    "no": 32,
+    "word": "姑息",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "その場しのぎで根本的でないさま",
     "a2": "卑怯・ずるい",
     "correct": 1,
     "ex_html": "<u>姑息</u>な対策では問題は解決しない。",
-    "tip": "入試ポイント：“場当たり的”が中核"
+    "tip": "“場当たり的”が中核 だよ。"
   },
   {
+    "no": 33,
+    "word": "露骨",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "感情や本音を隠さずはっきり表す",
     "a2": "下品・無礼である",
     "correct": 1,
     "ex_html": "彼は不満を<u>露骨</u>に表した。",
-    "tip": "入試ポイント：中立〜やや否定の語感を文脈で判断"
+    "tip": "中立〜やや否定の語感を文脈で判断 だよ。"
   },
   {
+    "no": 34,
+    "word": "如実に",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "ありのまま、事実のとおりに",
     "a2": "はっきり・とても強く",
     "correct": 1,
     "ex_html": "データは状況の変化を<u>如実に</u>示している。",
-    "tip": "入試ポイント：“事実性”が核心"
+    "tip": "“事実性”が核心 だよ。"
   },
   {
+    "no": 35,
+    "word": "画期的",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "それまでにない新しい流れを生み出すさま",
     "a2": "とても便利・すごい",
     "correct": 1,
     "ex_html": "この発見は医学において<u>画期的</u>だ。",
-    "tip": "入試ポイント：“新しい時代を開く”強い語"
+    "tip": "“新しい時代を開く”強い語 だよ。"
   },
   {
+    "no": 36,
+    "word": "紛糾",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "対立してもめ、混乱すること",
     "a2": "議論が活発になる",
     "correct": 1,
     "ex_html": "委員会は意見が割れて<u>紛糾</u>した。",
-    "tip": "入試ポイント：“混乱”を含む否定的語"
+    "tip": "“混乱”を含む否定的語 だよ。"
   },
   {
+    "no": 37,
+    "word": "生真面目",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "極めてまじめで融通がきかないほどである",
     "a2": "とてもまじめで良い性格",
     "correct": 1,
     "ex_html": "彼は<u>生真面目</u>すぎて、冗談も通じないところがある。",
-    "tip": "入試ポイント：評価は必ずしも肯定的でない"
+    "tip": "評価は必ずしも肯定的でない よ。"
   },
   {
+    "no": 38,
+    "word": "大ざっぱ",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "細部にこだわらずおおまかで雑なさま",
     "a2": "大胆で豪快",
     "correct": 1,
     "ex_html": "彼の計算は<u>大ざっぱ</u>で誤りが多い。",
-    "tip": "入試ポイント：“雑さ・粗さ”を含む語感"
+    "tip": "“雑さ・粗さ”を含む語感 だよ。"
   },
   {
+    "no": 39,
+    "word": "神経質",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "細かいことを気にしすぎて不安になりやすい",
     "a2": "注意深い・慎重",
     "correct": 1,
     "ex_html": "彼は音に<u>神経質</u>で、小さな物音にも反応する。",
-    "tip": "入試ポイント：否定的なニュアンスが基本"
+    "tip": "否定的なニュアンスが基本 だよ。"
   },
   {
+    "no": 40,
+    "word": "内向的",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "自分の内面に関心が向き、人前での行動が控えめ",
     "a2": "消極的・弱気",
     "correct": 1,
     "ex_html": "彼女は<u>内向的</u>だが、考えは深い。",
-    "tip": "入試ポイント：性質と評価を混同しない"
+    "tip": "性質と評価を混同しない よ。"
   },
   {
+    "no": 41,
+    "word": "放漫",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "物事をきちんと管理せず、だらしないさま",
     "a2": "おおらか・のびのびしている",
     "correct": 1,
     "ex_html": "<u>放漫</u>な経営が会社の危機を招いた。",
-    "tip": "入試ポイント：主に否定評価の語"
+    "tip": "主に否定評価の語 だよ。"
   },
   {
+    "no": 42,
+    "word": "高慢",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "自分を偉いと思い、他人を見下す態度",
     "a2": "自信がある",
     "correct": 1,
     "ex_html": "彼の<u>高慢</u>な態度が周囲の反感を買った。",
-    "tip": "入試ポイント：強い否定語である点に注意"
+    "tip": "強い否定語である点に注意 だよ。"
   },
   {
+    "no": 43,
+    "word": "寡黙",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "口数が少なく、あまり話さない性質",
     "a2": "無愛想・冷たい",
     "correct": 1,
     "ex_html": "彼は<u>寡黙</u>だが、思いやりのある人だ。",
-    "tip": "入試ポイント：性質そのものと印象は別"
+    "tip": "性質そのものと印象は別 だよ。"
   },
   {
+    "no": 44,
+    "word": "用心深い",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "危険や失敗を避けようとして慎重である",
     "a2": "臆病・弱気",
     "correct": 1,
     "ex_html": "彼女は用心深く、事前にしっかり確認する。",
-    "tip": "入試ポイント：必ずしも否定的ではない"
+    "tip": "必ずしも否定的ではない よ。"
   },
   {
+    "no": 45,
+    "word": "皮肉",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "表面とは逆の意味を含ませて相手を批判する言い方",
     "a2": "ちょっとした冗談・軽いからかい",
     "correct": 1,
     "ex_html": "彼の<u>皮肉</u>な言い方に場が凍りついた。",
-    "tip": "入試ポイント：批判性を含む語"
+    "tip": "批判性を含む語 だよ。"
   },
   {
+    "no": 46,
+    "word": "感傷的",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "物事に感じやすく、すぐに悲しみや涙に傾くさま",
     "a2": "感情豊か・優しい",
     "correct": 1,
     "ex_html": "別れの場面に<u>感傷的</u>になった。",
-    "tip": "入試ポイント：センチメンタル寄りの語感"
+    "tip": "センチメンタル寄りの語感 だよ。"
   },
   {
+    "no": 47,
+    "word": "閉塞感",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "先が見えず、打開の見通しが立たない感じ",
     "a2": "静かで落ち着いた雰囲気",
     "correct": 1,
     "ex_html": "社会に<u>閉塞感</u>が広がっている。",
-    "tip": "入試ポイント：“停滞・行き詰まり”を表す"
+    "tip": "“停滞・行き詰まり”を表す だよ。"
   },
   {
+    "no": 48,
+    "word": "虚栄心",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "実際以上によく見られたいという気持ち",
     "a2": "自尊心・誇り",
     "correct": 1,
     "ex_html": "<u>虚栄心</u>から高価な物を買ってしまった。",
-    "tip": "入試ポイント：評価は基本的に否定的"
+    "tip": "評価は基本的に否定的 だよ。"
   },
   {
+    "no": 49,
+    "word": "猜疑心",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "他人を疑ってかかる気持ち",
     "a2": "注意深く観察する態度",
     "correct": 1,
     "ex_html": "<u>猜疑心</u>が強く、人を簡単に信じない。",
-    "tip": "入試ポイント：強い不信の感情"
+    "tip": "強い不信の感情 だよ。"
   },
   {
+    "no": 50,
+    "word": "羞恥心",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "恥ずかしい・後ろめたい気持ち",
     "a2": "遠慮・控えめな態度",
     "correct": 1,
     "ex_html": "失敗を思い出し、<u>羞恥心</u>で顔が赤くなった。",
-    "tip": "入試ポイント：自分を低く見る感情ではない"
+    "tip": "自分を低く見る感情ではない よ。"
   },
   {
+    "no": 51,
+    "word": "劣等感",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "自分が他人より劣っていると感じる気持ち",
     "a2": "謙虚さ・控えめな気持ち",
     "correct": 1,
     "ex_html": "彼は<u>劣等感</u>から人前で話すのが苦手だ。",
-    "tip": "入試ポイント：否定的感情である点に注意"
+    "tip": "否定的感情である点に注意 だよ。"
   },
   {
+    "no": 52,
+    "word": "優越感",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "自分が他人より優れていると感じる気持ち",
     "a2": "自信・達成感",
     "correct": 1,
     "ex_html": "試合に勝ち、彼は<u>優越感</u>に浸った。",
-    "tip": "入試ポイント：他者を見下す含みがある"
+    "tip": "他者を見下す含みがある だよ。"
   },
   {
+    "no": 53,
+    "word": "焦燥感",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "思いどおりにならず、いらだち落ち着かない気持ち",
     "a2": "やる気が高まる感情",
     "correct": 1,
     "ex_html": "将来が見えず、<u>焦燥感</u>にとらわれる。",
-    "tip": "入試ポイント：“不安＋いらだち”が核"
+    "tip": "“不安＋いらだち”が核 だよ。"
   },
   {
+    "no": 54,
+    "word": "喪失感",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "大切なものを失ったときに感じる虚しさ",
     "a2": "がっかり・軽い落胆",
     "correct": 1,
     "ex_html": "引っ越し後、友人と別れた<u>喪失感</u>を覚えた。",
-    "tip": "入試ポイント：深い心理的ダメージを指すことが多い"
+    "tip": "深い心理的ダメージを指すことが多い よ。"
   },
   {
+    "no": 55,
+    "word": "倦怠感",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "疲れや無気力で何もする気が起きない感じ",
     "a2": "飽きる気持ち",
     "correct": 1,
     "ex_html": "長時間の作業で強い<u>倦怠感</u>におそわれた。",
-    "tip": "入試ポイント：体調や心理の“だるさ”"
+    "tip": "体調や心理の“だるさ” だよ。"
   },
   {
+    "no": 56,
+    "word": "自己嫌悪",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "自分の言動を嫌い、強く責める気持ち",
     "a2": "反省する気持ち",
     "correct": 1,
     "ex_html": "約束を破り、<u>自己嫌悪</u>におちいった。",
-    "tip": "入試ポイント：否定感情が強い"
+    "tip": "否定感情が強い よ。"
   },
   {
+    "no": 57,
+    "word": "罪悪感",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "悪いことをしたと感じて心が苦しい気持ち",
     "a2": "失敗して恥ずかしい気持ち",
     "correct": 1,
     "ex_html": "親に嘘をつき、<u>罪悪感</u>で眠れなかった。",
-    "tip": "入試ポイント：倫理的な“後ろめたさ”"
+    "tip": "倫理的な“後ろめたさ” だよ。"
   },
   {
+    "no": 58,
+    "word": "安堵",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "心配ごとがなくなり、ほっと安心する気持ち",
     "a2": "満足して喜ぶ気持ち",
     "correct": 1,
     "ex_html": "無事だと知って<u>安堵</u>の息をついた。",
-    "tip": "入試ポイント：“安心して力が抜ける”感覚"
+    "tip": "“安心して力が抜ける”感覚 だよ。"
   },
   {
+    "no": 59,
+    "word": "困惑",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "どうしてよいかわからず戸惑う気持ち",
     "a2": "少し驚く気持ち",
     "correct": 1,
     "ex_html": "急な依頼に<u>困惑</u>して返事ができなかった。",
-    "tip": "入試ポイント：“判断不能”がポイント"
+    "tip": "“判断不能”がポイント だよ。"
   },
   {
+    "no": 60,
+    "word": "葛藤",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "心の中で対立する気持ちに迷うこと",
     "a2": "喧嘩・対立",
     "correct": 1,
     "ex_html": "夢を追うか就職するかで<u>葛藤</u>した。",
-    "tip": "入試ポイント：内面の衝突を表す"
+    "tip": "内面の衝突を表す だよ。"
   },
   {
+    "no": 61,
+    "word": "諦念",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "あきらめて受け入れる気持ち",
     "a2": "落ち着いた冷静な気持ち",
     "correct": 1,
     "ex_html": "成績結果を前に<u>諦念</u>の表情を浮かべた。",
-    "tip": "入試ポイント：“仕方ないという受容”"
+    "tip": "“仕方ないという受容” だよ。"
   },
   {
+    "no": 62,
+    "word": "昂揚感",
     "q": "下線部の意味として正しいのはどっち？",
     "a1": "気持ちが高まり、意欲と高揚を感じること",
     "a2": "興奮して落ち着きがない",
     "correct": 1,
     "ex_html": "舞台に立ち、胸に<u>昂揚感</u>が広がった。",
-    "tip": "入試ポイント：肯定的な高まりに使うことが多い"
+    "tip": "肯定的な高まりに使うことが多い よ。"
   }
 ];
 
-    let answered = 0;
-    let correct = 0;
+    let currentIndex = 0; // 0-based
+    let answeredCount = 0;
+    let correctCount = 0;
+    const answeredFlags = Array(data.length).fill(false);
+    const correctFlags = Array(data.length).fill(false);
 
     function updateStats() {
       const el = document.getElementById("stats");
-      if (answered === 0) {
+      if (answeredCount === 0) {
         el.textContent = "まだ解いていません。";
       } else {
-        const rate = Math.round((correct / answered) * 100);
-        el.textContent = `現在の正解数：${correct} / ${answered} 問（正答率 ${rate}%）`;
+        const rate = Math.round((correctCount / answeredCount) * 100);
+        el.textContent = `現在の正解数：${correctCount} / ${answeredCount} 問（正答率 ${rate}%）`;
       }
     }
 
-    function render() {
+    function renderQuestion() {
       const app = document.getElementById("app");
+      const qnoEl = document.getElementById("qno");
+      const item = data[currentIndex];
+
+      qnoEl.textContent = `第 ${item.no} 問 / 全 ${data.length} 問`;
+
       app.innerHTML = "";
+      const card = document.createElement("div");
+      card.className = "card";
 
-      data.forEach((item, idx) => {
-        const card = document.createElement("div");
-        card.className = "card";
+      const label = document.createElement("div");
+      label.className = "example-label";
+      label.textContent = "【例文】";
+      card.appendChild(label);
 
-        const label = document.createElement("div");
-        label.className = "example-label";
-        label.textContent = "【例文】";
-        card.appendChild(label);
+      const example = document.createElement("div");
+      example.className = "example";
+      example.innerHTML = item.ex_html || "";
+      card.appendChild(example);
 
-        const example = document.createElement("div");
-        example.className = "example";
-        example.innerHTML = item.ex_html || "";
-        card.appendChild(example);
+      const h = document.createElement("h3");
+      h.textContent = item.q;
+      card.appendChild(h);
 
-        const h = document.createElement("h3");
-        h.textContent = (idx+1) + ". " + item.q;
-        card.appendChild(h);
+      const result = document.createElement("div");
+      result.className = "result";
+      card.appendChild(result);
 
-        const result = document.createElement("div");
-        result.className = "result";
-        card.appendChild(result);
+      const tip = document.createElement("div");
+      tip.className = "tip";
+      tip.textContent = item.tip || "";
+      card.appendChild(tip);
 
-        const tip = document.createElement("div");
-        tip.className = "tip";
-        // 文末トーン自動調整：
-            // ・形容詞・傾向表現 →「よ。」
-            // ・それ以外 →「だよ。」
-            const base = (item.tip || "");
-            if (!base) { tip.textContent = ""; }
-            else if (base.endsWith("だよ。")) { tip.textContent = base; }
-            else {
-              // 単純ヒューリスティック
-              const plain = base.replace(/。+$/,'');
-              const last = plain.slice(-1);
-              const yoEnd = /[いえやよん]$/.test(last) || /(やすい|しやすい|しにくい|気味|傾向)$/.test(plain);
-              tip.textContent = base + (yoEnd ? " よ。" : " だよ。");
-            }
-        card.appendChild(tip);
+      function handleAnswer(choice) {
+        if (card.dataset.done === "1") return;
+        card.dataset.done = "1";
+        const ok = (choice === item.correct);
 
-        function makeButton(text, n) {
-          const b = document.createElement("button");
-          b.className = "btn";
-          b.textContent = text;
-          b.addEventListener("click", function () {
-            if (card.dataset.done === "1") return;
-            card.dataset.done = "1";
-
-            const ok = (n === item.correct);
-            b.classList.add(ok ? "correct" : "wrong");
-
-            if (ok) {
-              result.textContent = "正解！";
-              result.classList.add("ok");
-            } else {
-              result.textContent = "不正解…";
-              result.classList.add("ng");
-            }
-
-            // 正解・不正解にかかわらず入試ポイントを表示
-            tip.style.display = "block";
-
-            // 正答率カウント更新（1問につき最初の1回だけ）
-            answered += 1;
-            if (ok) { correct += 1; }
-            updateStats();
-          });
-          return b;
+        if (ok) {
+          result.textContent = "正解！";
+          result.classList.add("ok");
+        } else {
+          result.textContent = "不正解…";
+          result.classList.add("ng");
         }
 
-        const btn1 = makeButton("① " + item.a1, 1);
-        const btn2 = makeButton("② " + item.a2, 2);
+        tip.style.display = "block";
 
-        card.appendChild(btn1);
-        card.appendChild(btn2);
-        app.appendChild(card);
-      });
+        if (!answeredFlags[currentIndex]) {
+          answeredFlags[currentIndex] = true;
+          answeredCount += 1;
+          if (ok) {
+            correctFlags[currentIndex] = true;
+            correctCount += 1;
+          }
+        } else {
+          if (ok && !correctFlags[currentIndex]) {
+            correctFlags[currentIndex] = true;
+            correctCount += 1;
+          }
+        }
 
-      updateStats();
+        updateStats();
+      }
+
+      const btn1 = document.createElement("button");
+      btn1.className = "btn";
+      btn1.textContent = "① " + item.a1;
+      btn1.onclick = () => handleAnswer(1);
+
+      const btn2 = document.createElement("button");
+      btn2.className = "btn";
+      btn2.textContent = "② " + item.a2;
+      btn2.onclick = () => handleAnswer(2);
+
+      card.appendChild(btn1);
+      card.appendChild(btn2);
+      app.appendChild(card);
+
+      document.getElementById("prevBtn").disabled = (currentIndex === 0);
+      document.getElementById("nextBtn").disabled = (currentIndex === data.length - 1);
     }
 
-    render();
+    document.getElementById("prevBtn").addEventListener("click", () => {
+      if (currentIndex > 0) {
+        currentIndex -= 1;
+        renderQuestion();
+      }
+    });
+
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      if (currentIndex < data.length - 1) {
+        currentIndex += 1;
+        renderQuestion();
+      }
+    });
+
+    renderQuestion();
+    updateStats();
   </script>
 </body>
 </html>
