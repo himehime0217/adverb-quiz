@@ -569,7 +569,7 @@
 
         const tip = document.createElement("div");
         tip.className = "tip";
-        tip.textContent = item.tip || "";
+        tip.textContent = (item.tip || "") + ((item.tip && !item.tip.endsWith("だよ。")) ? " だよ。" : "");
         card.appendChild(tip);
 
         function makeButton(text, n) {
